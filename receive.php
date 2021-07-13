@@ -6,7 +6,7 @@ include_once 'db_methods.php';
 use Dotenv\Dotenv;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
-//read the variables from .env file
+//read the values of variables from .env file
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->safeLoad();
 
