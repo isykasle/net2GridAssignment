@@ -1,0 +1,22 @@
+{
+    "name": "isykasle/net2grid-assignment",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "isykasle\\Net2gridAssignment\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    },
+    "authors": [
+        {
+            "name": "isykasle",
+            "email": "johnnysyle@gmail.com"
+        }
+    ],
+    "require": {
+        "php-amqplib/php-amqplib": ">=3.0",
+        "vlucas/phpdotenv": "^5.3"
+    }
+}
