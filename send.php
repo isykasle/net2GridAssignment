@@ -6,11 +6,11 @@ use Dotenv\Dotenv;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-//diavazw tis metavlites apo to .env arxeio
+//read the variables from .env file
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->safeLoad();
 
-// sindesi me rabbitMQ
+//connection with rabbitMQ
 $connection = new AMQPStreamConnection(
     $_ENV["MESSAGEQUEUE_HOSTNAME"],
     5672,
@@ -20,14 +20,14 @@ $connection = new AMQPStreamConnection(
 $channel = $connection->channel();
 
 
-//Kanw HTTP Request sto url
+//make HTTP Request to url
 $json = file_get_contents($_ENV['API_URL']);
 $data = json_decode($json);
 
 echo(json_encode($data, JSON_PRETTY_PRINT));
 echo("\n");
 
-// Spaw ta dedomena se metavlites
+// break the the json form of data to unique variables
 $gatewayEui = $data->{'gatewayEui'};
 $profileId = $data->{'profileId'};
 $endpointId = $data->{'endpointId'};
@@ -36,31 +36,32 @@ $attributeId = $data->{'attributeId'};
 $value = $data->{'value'};
 $timestamp = $data->{'timestamp'};
 
-//ftiaxnw to routing key <gateway eui>.<profile>.<endpoint>.<cluster>.<attribute>
-//metatrepw tis times apo hex se dekadiko sistima
+//make the routing key <gateway eui>.<profile>.<endpoint>.<cluster>.<attribute>
+//convert values from hex to decimal system
 $routingKey = hexToDecimal($gatewayEui) . '.' . hexToDecimal($profileId) . '.' . hexToDecimal($endpointId) . '.' .
     hexToDecimal($clusterId) . '.' . hexToDecimal($attributeId);
 
 echo($routingKey);
 echo("\n");
-//ftiaxnw to value to opoio tha mpei sto rabbitmq(mesa sto keli)
+//define the value that inserts in cell of rabbitMQ queue 
 $payload = json_encode([
     'value'=>$value,
     'timestamp'=>$timestamp
 ],JSON_PRETTY_PRINT);
 
 
-//stelnw sto rabbitmq to minima ston solina kai sto domatio(keli) poy prepei
-//Stelnw ston solina me
-// onoma $_ENV['MESSAGEQUEUE_EXCHANGE'] kai sto domatio me
-// onoma $routingKey tin
-// timi $messageForQueue
+
+//send the message to the rabbitMQ queue and to the specific cell that is required
+// Send to the rabbitMQ queue with name
+// $_ENV['MESSAGEQUEUE_EXCHANGE'] 
+// and to the cell with name $routingKey
+// the value $messageForQueue
 $messageForQueue = new AMQPMessage($payload);
 $channel->basic_publish($messageForQueue, $_ENV['MESSAGEQUEUE_EXCHANGE'], $routingKey);
 
 
 /**
- * Pairnei san parametro ena dekaexadiko arithmo kai ton metatrepei se dekadiko
+ * Rexeives as parameter a hexademical number and return a decimal
  * @param $hexString
  * @return string
  */
@@ -69,6 +70,7 @@ $channel->basic_publish($messageForQueue, $_ENV['MESSAGEQUEUE_EXCHANGE'], $routi
     return base_convert($hexString, 16, 10);
 }
 
+//close the channel and connection of rabbitMQ queue
 $channel->close();
 $connection->close();
 

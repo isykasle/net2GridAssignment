@@ -6,11 +6,11 @@ include_once 'db_methods.php';
 use Dotenv\Dotenv;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
-//diavazw tis metavlites apo to .env arxeio
+//read the variables from .env file
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->safeLoad();
 
-// sindesi me rabbitMQ
+//connection with rabbitMQ
 $connection = new AMQPStreamConnection(
     $_ENV['MESSAGEQUEUE_HOSTNAME'],
     5672,
@@ -20,17 +20,22 @@ $connection = new AMQPStreamConnection(
 $channel = $connection->channel();
 
 
-//function pou kaleite kathe fora pou pernw dedomena apo ton solina
+/**
+  *Receives the data of value and timestamp in a json format.
+  *This function is called every time that I receive data from the RabbitMQ
+  *queue.
+  *Prints the data value and timestamp in command line
+  *Inserts data to the table of a database
+*/ 
 $callback = function ($msg) {
     echo ' [x] Received ', $msg->body, "\n";
-    //ta vazw sti mysql
+
     $data = json_decode($msg->body);
     $value=$data->{'value'};
     $timestamp=$data->{'timestamp'};
-    //printf("%s (%s)\n", $value, $timestamp);
     insertToTable($value,$timestamp);
-    showTable();
-    //sleep(substr_count($msg->body, '.'));
+    //showTable();
+    
 
     
 
@@ -38,11 +43,12 @@ $callback = function ($msg) {
 
 
 
-//arxizw na pernw dedomena apo ton solina me
-// onoma $_ENV['MESSAGEQUEUE_RESULTS_QUEUE']
+
+//start to receive data from the queue with
+//name $_ENV['MESSAGEQUEUE_RESULTS_QUEUE']
 $channel->basic_consume($_ENV['MESSAGEQUEUE_RESULTS_QUEUE'], '', false, true, false, false, $callback);
 
-//lew sto programma na min kleisei oso perimenw minimata apo ton solina
+//require the programm not to stop as I wait messages from the queue
 while ($channel->is_open()) {
     $channel->wait();
 }
