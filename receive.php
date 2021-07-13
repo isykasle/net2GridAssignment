@@ -36,9 +36,6 @@ $callback = function ($msg) {
     insertToTable($value,$timestamp);
     //showTable();
     
-
-    
-
 };
 
 
@@ -52,7 +49,5 @@ $channel->basic_consume($_ENV['MESSAGEQUEUE_RESULTS_QUEUE'], '', false, true, fa
 while ($channel->is_open()) {
     $channel->wait();
 }
-
-
 
 ?>

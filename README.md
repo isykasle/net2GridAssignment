@@ -1,4 +1,4 @@
-The test of the project has beem done in Windows OS.
+The test of the project has been done in Windows OS.
 
 To set the project follow the below instructions:
 
@@ -30,5 +30,4 @@ The consumer will print the message it gets from the sender via RabbitMQ and
 insert the message in a table called theValues 
 with three columns an id,aValue,aTimestamp of database "cand_swc". 
 The receiver will keep running, waiting for messages (Use Ctrl-C to stop it),so try running the sender from another terminal.
-
 
